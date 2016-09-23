@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  .line {
+    fill: none;
+  }
+  .f1 {
+    stroke: #f00;
+  }
+  .f2 {
+    stroke: #0f0;
+  }
+  .f3 {
+    stroke: #000;
+  }
+</style>
+<svg width="960" height="500"></svg>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.1.1/d3.js"></script>
+<script>
+
+var n = 100,
+    f1 = function(t){
+      return 0.2 * Math.sin(t / (2 * Math.PI));
+    },
+    f2 = function(t){
+      return 0.2 * Math.sin(24 + t / (2 * Math.PI));
+    },
+    f3 = function(t){
+      return f1(t) + f2(t);
+    },
+    data1 = d3.range(n).map(f1),
+    data2 = d3.range(n).map(f2),
+    data3 = d3.range(n).map(f3);
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var x = d3.scaleLinear().domain([0, n - 1]).range([0, width]);
+var y = d3.scaleLinear().domain([-1, 1]).range([height, 0]);
+var line = d3.line().x(function(d, i) { return x(i); }).y(function(d, i) { return y(d); });
+
+svg.append("path")
+    .datum(data1)
+    .attr("class", "line f1")
+  .transition()
+    .duration(50)
+    .ease(d3.easeLinear)
+    .on("start", tick);
+
+svg.append("path")
+    .datum(data2)
+    .attr("class", "line f2");
+svg.append("path")
+    .datum(data3)
+    .attr("class", "line f3");
+
+function tick() {
+  data1.push(f1(n));
+  data2.push(f2(n));
+  data3.push(f3(n));
+
+  // Redraw the line.
+  d3.selectAll(".line").attr("d", line);
+  d3.active(this)
+    .transition().on("start", tick);
+
+  // Slide it to the left.
+  d3.selectAll(".line")
+      .attr("transform", "translate(" + x(-1) + ",0)");
+
+  data1.shift();
+  data2.shift();
+  data3.shift();
+  n += 1;
+}
+
+</script>
